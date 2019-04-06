@@ -1,0 +1,30 @@
+#!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
+
+FUNCTION_NAME_OR_ARN=${1:-}
+
+if [ -z "${FUNCTION_NAME_OR_ARN}" ] ; then
+  echo "This script is for quick deployments to an existing Lambda."
+  echo "It is not meant to be used by Terraform or CI."
+  echo "Usage:"
+  echo "deploy_lambda_zip <function_name_or_arn>"
+  exit 1
+fi
+
+DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../" && pwd)
+
+BUILD_DIR="${DIR}/build"
+
+TMP_DIR="${DIR}/tmp"
+
+rm -rf "${TMP_DIR}"
+
+mkdir -p "${TMP_DIR}"
+
+cd "${BUILD_DIR}" && zip --recurse-paths "${TMP_DIR}/sandbox.zip" .
+
+aws lambda update-function-code \
+--function-name "${FUNCTION_NAME_OR_ARN}" \
+--zip-file "fileb://${TMP_DIR}/sandbox.zip" \
+--publish
