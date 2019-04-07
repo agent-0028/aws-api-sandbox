@@ -42,6 +42,32 @@ resource "aws_iam_role" "sandbox" {
 EOF
 }
 
+# there is a policy attached to our role that allow log creation
+resource "aws_iam_role_policy" "sandbox" {
+  name = "lambda_exec_policy"
+  role = "${aws_iam_role.sandbox.id}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": [
+        "arn:aws:logs:*:*:*"
+      ]
+    }
+  ]
+}
+EOF
+}
+
 # there is an API Gateway
 resource "aws_api_gateway_rest_api" "sandbox" {
   name        = "API Sandbox - ${terraform.workspace}"
