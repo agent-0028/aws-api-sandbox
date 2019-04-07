@@ -35,7 +35,7 @@ For now, these are the authoritative build instructions.
 Copy `.env.example` to `.env` and edit appropriately.
 
 ```
-src ./.env
+source ./.env
 ./bin/build
 ./bin/stage_lambda_zip "$LAMBDA_DEPLOY_BUCKET" "$ENVIRONMENT" "$BUILD_ID"
 cd infrastructureterraform workspace select "$ENVIRONMENT" || terraform workspace new "$ENVIRONMENT"
