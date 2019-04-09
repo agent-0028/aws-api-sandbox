@@ -13,7 +13,7 @@
     "type": "git",
     "url": "git+ssh://git@github.com/agent-0028/aws-api-sandbox.git"
   },
-  "author": "Agent 0028",
+  "author": "Jason Grosz (Agent 0028)",
   "license": "BSD-2-Clause",
   "bugs": {
     "url": "https://github.com/agent-0028/aws-api-sandbox/issues"

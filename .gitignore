@@ -100,5 +100,8 @@ typings/
 # Custom things added for this project
 
 .DS_Store
-tmp
-build
+tmp/*
+build/*
+e2e/cypress/screenshots/*
+e2e/cypress/videos/*
+e2e/cypress/integration/examples/*
