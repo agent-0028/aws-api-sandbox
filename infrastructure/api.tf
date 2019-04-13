@@ -52,7 +52,7 @@ EOF
 
 # there is a policy attached to our role that allow log creation
 resource "aws_iam_role_policy" "sandbox" {
-  name = "lambda_exec_policy"
+  name = "lambda_exec_policy-${terraform.workspace}"
   role = "${aws_iam_role.sandbox.id}"
 
   policy = <<EOF
@@ -168,7 +168,7 @@ resource "aws_api_gateway_account" "sandbox" {
 }
 
 resource "aws_iam_role" "cloudwatch" {
-  name = "api_gateway_cloudwatch_global"
+  name = "api_gateway_cloudwatch_global-${terraform.workspace}"
 
   assume_role_policy = <<EOF
 {
@@ -188,7 +188,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "cloudwatch" {
-  name = "default"
+  name = "cloudwatch-${terraform.workspace}"
   role = "${aws_iam_role.cloudwatch.id}"
 
   policy = <<EOF
