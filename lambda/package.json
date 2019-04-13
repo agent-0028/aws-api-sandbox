@@ -27,13 +27,16 @@
     "standard": "^12.0.1",
     "testdouble": "^3.11.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "rhymes": "^1.0.2"
+  },
   "standard": {
     "globals": [
       "td",
       "describe",
       "it",
-      "expect"
+      "expect",
+      "beforeEach"
     ]
   }
 }

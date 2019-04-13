@@ -1,5 +1,15 @@
-const message = () => {
-  return Promise.resolve('<p>API Sandbox v0.0.1</p>')
+const rhymeIt = require('./rhymeIt')
+
+const message = (wordsToRhyme = []) => {
+  const allRhymes = wordsToRhyme.reduce((result, wordToRhyme) => {
+    const rhymesOfWord = rhymeIt(wordToRhyme)
+    return result.concat(rhymesOfWord)
+  }, [])
+
+  const words = wordsToRhyme.join(', ')
+  const rhymed = allRhymes.join(', ')
+
+  return Promise.resolve(`<p>The words "${rhymed}" rhyme with "${words}"</p>`)
 }
 
 module.exports = message
