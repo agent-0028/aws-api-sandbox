@@ -1,0 +1,21 @@
+#!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
+
+DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"/../ && pwd)
+
+BUILD_DIR="${DIR}/build"
+
+LAMBDA_DIR="${DIR}/lambda"
+
+SOURCE_DIR="${LAMBDA_DIR}/src"
+
+rm -rf "${BUILD_DIR}"
+
+mkdir -p "${BUILD_DIR}"
+
+cp "${SOURCE_DIR}/"*.js "${BUILD_DIR}/"
+cp "${LAMBDA_DIR}/package.json" "${BUILD_DIR}/"
+cp "${LAMBDA_DIR}/package-lock.json" "${BUILD_DIR}/"
+
+cd "${BUILD_DIR}" && npm ci --only=production

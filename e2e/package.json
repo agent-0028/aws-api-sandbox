@@ -1,0 +1,23 @@
+{
+  "name": "e2e",
+  "version": "1.0.0",
+  "description": "End to end tests for aws-api-sandbox",
+  "main": "index.js",
+  "scripts": {
+    "test": "cypress run",
+    "cypress:open": "cypress open"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agent-0028/aws-api-sandbox.git"
+  },
+  "author": "Jason Grosz (Agent 0028)",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/agent-0028/aws-api-sandbox/issues"
+  },
+  "homepage": "https://github.com/agent-0028/aws-api-sandbox#readme",
+  "devDependencies": {
+    "cypress": "^3.2.0"
+  }
+}
