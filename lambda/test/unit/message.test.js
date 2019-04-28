@@ -1,4 +1,4 @@
-describe('response handler', function () {
+describe('message', function () {
   let subject, rhymeIt
 
   beforeEach(() => {
@@ -12,8 +12,9 @@ describe('response handler', function () {
     td.when(rhymeIt('moon')).thenReturn(fakeRhymesMoon)
     td.when(rhymeIt('food')).thenReturn(fakeRhymesFood)
 
-    return subject([ 'moon', 'food' ]).then((result) => {
-      expect(result).toEqual('<p>The words "moon, soon, boon, good, wood" rhyme with "moon, food"</p>')
+    return subject({ words: [ 'moon', 'food' ] }).then((result) => {
+      expect(result.statusCode).toEqual(200)
+      expect(result.body).toEqual(`["moon","soon","boon","good","wood"]`)
     })
   })
 })

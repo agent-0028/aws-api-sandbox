@@ -7,6 +7,7 @@
     "test": "npm run test:unit && npm run lint",
     "test:unit": "jasmine --helper=test/helper.js test/**/*.test.js",
     "lint": "standard",
+    "lint:fix": "npm run lint -- --fix",
     "test:debug": "npm test -- --debug-brk"
   },
   "repository": {
@@ -34,9 +35,12 @@
     "globals": [
       "td",
       "describe",
+      "xdescribe",
       "it",
+      "xit",
       "expect",
-      "beforeEach"
+      "beforeEach",
+      "context"
     ]
   }
 }
