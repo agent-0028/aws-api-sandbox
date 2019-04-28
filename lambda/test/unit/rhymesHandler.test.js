@@ -3,7 +3,7 @@ describe('message', function () {
 
   beforeEach(() => {
     rhymeIt = td.replace('../../src/rhymeIt')
-    subject = require('../../src/message')
+    subject = require('../../src/rhymesHandler')
   })
 
   it('finds rhymes for a word', function () {

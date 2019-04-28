@@ -1,11 +1,12 @@
-const message = require('./message')
+const rhymesHandler = require('./rhymesHandler')
+const notFoundHandler = require('./notFoundHandler')
 
 const injectedHandlers = {
   'GET': {
-    '/ryhmes/': message
+    '/rhymes/': rhymesHandler
   }
 }
-const injectedNotFoundHandler = () => Promise.resolve({ statusCode: 404, body: JSON.stringify({ error: 'There was an error.' }) })
+const injectedNotFoundHandler = notFoundHandler
 
 module.exports = (handlers = injectedHandlers, notFoundHandler = injectedNotFoundHandler) => (method, path, params) => {
   const { [method]: { [path]: handler = notFoundHandler } = {} } = handlers

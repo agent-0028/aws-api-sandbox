@@ -1,6 +1,6 @@
 const rhymeIt = require('./rhymeIt')
 
-const message = ({ words: wordsToRhyme }) => {
+const handler = ({ words: wordsToRhyme }) => {
   const allRhymes = wordsToRhyme.reduce((result, wordToRhyme) => {
     const rhymesOfWord = rhymeIt(wordToRhyme)
     return result.concat(rhymesOfWord)
@@ -14,4 +14,4 @@ const message = ({ words: wordsToRhyme }) => {
   return Promise.resolve(response)
 }
 
-module.exports = message
+module.exports = handler
