@@ -119,7 +119,7 @@ resource "aws_lambda_permission" "apigw" {
 resource "aws_api_gateway_resource" "proxy" {
   rest_api_id = "${aws_api_gateway_rest_api.sandbox.id}"
   parent_id   = "${aws_api_gateway_rest_api.sandbox.root_resource_id}"
-  path_part   = "{proxy+}" # this accepts any route
+  path_part   = "{proxy+}"                                             # this accepts any route
 }
 
 # the gateway will accept all HTTP methods
