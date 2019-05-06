@@ -57,13 +57,3 @@ cd lambda && npm test
 # end to end (SAFE) tests
 cd e2e && npm test
 ```
-
-### Notes
-
-This is the equation to find the invoke URL.
-Might need this for CI to use for Cypress post deployment tests.
-```
-output "calculated-url" {
-  value = "https://${aws_api_gateway_rest_api.sandbox.id}.execute-api.${var.aws_region}.amazonaws.com/${aws_api_gateway_deployment.sandbox.stage_name}/rhymes/"
-}
-```

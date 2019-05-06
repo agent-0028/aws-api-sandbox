@@ -4,7 +4,7 @@
   "description": "End to end tests for aws-api-sandbox",
   "main": "index.js",
   "scripts": {
-    "test": "cypress run",
+    "test": "CYPRESS_BASE_URL=$(./bin/exec_url ${ENVIRONMENT}) cypress run",
     "cypress:open": "cypress open"
   },
   "repository": {

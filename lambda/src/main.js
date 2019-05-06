@@ -1,16 +1,9 @@
-const message = require('./message')
+const controller = require('./controller')
 
 module.exports.handler = function (event, context, callback) {
-  const { multiValueQueryStringParameters: { words } } = event
+  const { multiValueQueryStringParameters: params, path, httpMethod } = event
 
-  message(words).then((body) => {
-    const response = {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'text/html; charset=utf-8'
-      },
-      body
-    }
+  controller()(httpMethod, path, params).then((response) => {
     callback(null, response)
   })
 }
