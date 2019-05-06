@@ -28,7 +28,11 @@ describe('controller', function () {
       return subject(mockHandlers, mockNotFoundHandler)(method, path, params).then((result) => {
         expect(result).toEqual({
           statusCode: 200,
-          headers: { 'Content-Type': 'application/json; charset=utf-8' },
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Credentials': true
+          },
           body: 'body' })
       })
     })
@@ -38,7 +42,11 @@ describe('controller', function () {
         return subject(mockHandlers, mockNotFoundHandler)(path, 'WHATEV', params).then((result) => {
           expect(result).toEqual({
             statusCode: 404,
-            headers: { 'Content-Type': 'application/json; charset=utf-8' },
+            headers: {
+              'Content-Type': 'application/json; charset=utf-8',
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Credentials': true
+            },
             body: 'error'
           })
         })
@@ -50,7 +58,11 @@ describe('controller', function () {
         return subject(mockHandlers, mockNotFoundHandler)('/does/not/exist/', method, params).then((result) => {
           expect(result).toEqual({
             statusCode: 404,
-            headers: { 'Content-Type': 'application/json; charset=utf-8' },
+            headers: {
+              'Content-Type': 'application/json; charset=utf-8',
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Credentials': true
+            },
             body: 'error'
           })
         })
