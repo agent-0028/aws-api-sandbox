@@ -1,6 +1,6 @@
 const rhymeIt = require('./rhymeIt')
 
-const handler = ({ words: wordsToRhyme }) => {
+const handler = ({ words: wordsToRhyme = [] } = {}) => {
   const allRhymes = wordsToRhyme.reduce((result, wordToRhyme) => {
     const rhymesOfWord = rhymeIt(wordToRhyme)
     return result.concat(rhymesOfWord)
