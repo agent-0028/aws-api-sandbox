@@ -5,8 +5,6 @@ IFS=$'\n\t'
 ENVIRONMENT=${1:-}
 
 if [ -z "${ENVIRONMENT}" ] ; then
-  echo "This script is for quick deployments to an existing Lambda."
-  echo "It is not meant to be used by Terraform or CI."
   echo "Usage:"
   echo "exec_url <environment>"
   exit 1
