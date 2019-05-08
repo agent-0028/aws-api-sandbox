@@ -1,0 +1,15 @@
+#!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
+
+DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"/../ && pwd)
+
+TMP_DIR="${DIR}/tmp"
+BUILD_DIR="${DIR}/build"
+
+rm -rf "${TMP_DIR}"
+rm -rf "${BUILD_DIR}"
+
+echo "Deleted build detritus:"
+echo "${TMP_DIR}"
+echo "${BUILD_DIR}"
