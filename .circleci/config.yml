@@ -1,0 +1,32 @@
+version: 2.1
+
+
+executors:
+  circleci_node_8:
+    docker:
+      - image: circleci/node:8.10
+
+
+jobs:
+  unit_test_and_lint_lambda:
+    executor: circleci_node_8
+    steps:
+      - checkout
+      - run:
+          name: install depedencies
+          command: npm install 
+          working_directory: lambda
+      - run:
+          name: run unit tests and lint
+          command: npm test
+          working_directory: lambda
+
+
+workflows:
+  version: 2
+  test_build_deploy:
+    jobs:
+      - unit_test_and_lint_lambda:
+          filters:
+            tags:
+              only: /.*/
