@@ -5,28 +5,86 @@ executors:
   circleci_node_8:
     docker:
       - image: circleci/node:8.10
+  circleci_python:
+    docker:
+      - image: circleci/python:2.7-stretch
+
+commands:
+  make_environment_required:
+    description: "Ensure that the environment var CI_ENV is not empty"
+    steps:
+      - run:
+          name: Make CI_ENV required
+          command: 'if [ -z "${CI_ENV}" ]; then echo "CI_ENV is required!" && exit 1; fi'
+  stage_code:
+    description: "Stage code in an s3 bucket"
+    parameters:
+      ci_env:
+        type: string
+    steps:
+      - run:
+          name: Setup environment variables
+          command: |
+            echo 'export BUILD_ID="${CIRCLE_BUILD_NUM}-${CIRCLE_SHA1:0:7}"' >> $BASH_ENV
+            echo 'export CI_ENV="<< parameters.ci_env >>"' >> $BASH_ENV
+            echo 'export LAMBDA_DEPLOY_BUCKET="tinisi-lambda-deploy"' >> $BASH_ENV
+      - make_environment_required
+      - attach_workspace:
+          at: /tmp/workspace
+      - checkout
+      - run:
+          name: Install awscli
+          command: sudo pip install awscli
+      - run:
+          name: Check awscli version
+          command: aws --version
+      - run:
+          name: Move build folder
+          command: mv /tmp/workspace/build ./
+      - run:
+          name: Stage lambda code in s3 bucket
+          command: ./bin/stage_lambda_zip "$LAMBDA_DEPLOY_BUCKET" "$CI_ENV" "$BUILD_ID"
 
 
 jobs:
-  unit_test_and_lint_lambda:
+  unit_test_and_build_lambda:
     executor: circleci_node_8
     steps:
       - checkout
       - run:
-          name: install depedencies
-          command: npm install 
+          name: Install dependencies
+          command: npm install
           working_directory: lambda
       - run:
-          name: run unit tests and lint
+          name: Run unit tests and lint
           command: npm test
           working_directory: lambda
+      - run:
+          name: Build code
+          command: bin/build
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - build
+
+  stage_code_dev:
+    executor: circleci_python
+    steps:
+      - stage_code:
+          ci_env: dev
 
 
 workflows:
   version: 2
   test_build_deploy:
     jobs:
-      - unit_test_and_lint_lambda:
+      - unit_test_and_build_lambda:
           filters:
             tags:
               only: /.*/
+      - stage_code_dev:
+          requires:
+            - unit_test_and_build_lambda
+          filters:
+            branches:
+              only: add-circle-ci
