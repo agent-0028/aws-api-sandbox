@@ -1,6 +1,5 @@
 version: 2.1
 
-
 executors:
   circleci_node_8:
     docker:
@@ -8,9 +7,13 @@ executors:
   circleci_python:
     docker:
       - image: circleci/python:2.7-stretch
+  hashicorp_terraform:
+    docker:
+      - image: hashicorp/terraform:full
+
 
 commands:
-  make_environment_required:
+  make_ci_env_required:
     description: "Ensure that the environment var CI_ENV is not empty"
     steps:
       - run:
@@ -27,8 +30,7 @@ commands:
           command: |
             echo 'export BUILD_ID="${CIRCLE_BUILD_NUM}-${CIRCLE_SHA1:0:7}"' >> $BASH_ENV
             echo 'export CI_ENV="<< parameters.ci_env >>"' >> $BASH_ENV
-            echo 'export LAMBDA_DEPLOY_BUCKET="tinisi-lambda-deploy"' >> $BASH_ENV
-      - make_environment_required
+      - make_ci_env_required
       - attach_workspace:
           at: /tmp/workspace
       - checkout
@@ -39,11 +41,70 @@ commands:
           name: Check awscli version
           command: aws --version
       - run:
-          name: Move build folder
+          name: Move build folder back where it should be
           command: mv /tmp/workspace/build ./
       - run:
           name: Stage lambda code in s3 bucket
           command: ./bin/stage_lambda_zip "$LAMBDA_DEPLOY_BUCKET" "$CI_ENV" "$BUILD_ID"
+
+  deploy:
+    description: "Deploy all AWS resources and code with Terraform"
+    parameters:
+      ci_env:
+        type: string
+    steps:
+      - run:
+          name: Setup Environment Variables
+          command: |
+            echo 'export BUILD_ID="${CIRCLE_PREVIOUS_BUILD_NUM}-${CIRCLE_SHA1:0:7}"' >> $BASH_ENV
+            echo 'export CI_ENV="<< parameters.ci_env >>"' >> $BASH_ENV
+            echo 'export TF_VAR_build_id="${BUILD_ID}"' >> $BASH_ENV
+            echo 'export TF_VAR_lambda_deploy_bucket="${LAMBDA_DEPLOY_BUCKET}"' >> $BASH_ENV
+            echo '# This should make awscli work even with a --user install' >> $BASH_ENV
+            echo 'export PATH=~/.local/bin:$PATH' >> $BASH_ENV
+      - make_ci_env_required
+      - checkout
+      - run:
+          name: Install Python and pip
+          command: apk add python py-pip
+      - run:
+          name: Install AWS cli
+          command: pip install awscli --user
+      - run:
+          name: Check awscli version
+          command: aws --version
+      - run:
+          name: Lint Terraform
+          command: terraform fmt -check=true
+          working_directory: infrastructure
+      - run:
+          name: Init Terraform
+          command: terraform init
+          working_directory: infrastructure
+      - run:
+          name: Switch to or create Workspace
+          command: terraform workspace select "${CI_ENV}" || terraform workspace new "${CI_ENV}"
+          working_directory: infrastructure
+      - run:
+          name: Validate Terraform config
+          command: terraform validate
+          working_directory: infrastructure
+      - run:
+          name: Save Terraform Plan
+          command: terraform plan --input=false --out=./circleci.tfplan
+          working_directory: infrastructure
+      - run:
+          name: Apply Terraform Plan
+          command: terraform apply --input=false ./circleci.tfplan
+          working_directory: infrastructure
+      - run:
+          name: Persist the execution URL for the e2e tests
+          command: |
+            echo 'export CYPRESS_BASE_URL="$(./e2e/bin/exec_url ${CI_ENV})"' >> cypress_base_url_env
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - cypress_base_url_env
 
 
 jobs:
@@ -73,6 +134,11 @@ jobs:
       - stage_code:
           ci_env: dev
 
+  deploy_dev:
+    executor: hashicorp_terraform
+    steps:
+      - deploy:
+          ci_env: dev
 
 workflows:
   version: 2
@@ -85,6 +151,12 @@ workflows:
       - stage_code_dev:
           requires:
             - unit_test_and_build_lambda
+          filters:
+            branches:
+              only: add-circle-ci
+      - deploy_dev:
+          requires:
+            - stage_code_dev
           filters:
             branches:
               only: add-circle-ci

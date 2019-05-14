@@ -26,11 +26,7 @@ Configure the client using [these instructions](https://docs.aws.amazon.com/cli/
 brew install awscli terraform
 ```
 
-### Build and Deploy
-
-This will get codified in a CircleCI config file.
-
-For now, these are the authoritative build instructions.
+### Local Build and Deploy
 
 Copy `.env.example` to `.env` and edit appropriately.
 
@@ -42,18 +38,29 @@ source ./.env
 ./bin/build
 
 # full deploy
-./bin/stage_lambda_zip "$LAMBDA_DEPLOY_BUCKET" "$ENVIRONMENT" "$BUILD_ID"
+./bin/stage_lambda_zip "$LAMBDA_DEPLOY_BUCKET" "$CI_ENV" "$BUILD_ID"
 cd infrastructure
-terraform workspace select "$ENVIRONMENT" || terraform workspace new "$ENVIRONMENT"
+terraform workspace select "$CI_ENV" || terraform workspace new "$CI_ENV"
 terraform plan
 terraform apply
 
 # deploy new version without using Terraform
-./bin/deploy_lambda "api-sandbox-${ENVIRONMENT}"
+# this should only be used for feature development
+./bin/deploy_lambda "api-sandbox-${CI_ENV}"
 
 # unit tests for the Lambda
 cd lambda && npm test
 
 # end to end (SAFE) tests
 cd e2e && npm test
+```
+
+### CircleCI Config
+
+These environment variables need to be set up for your CircleCI project.
+
+```
+AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
+LAMBDA_DEPLOY_BUCKET
 ```
