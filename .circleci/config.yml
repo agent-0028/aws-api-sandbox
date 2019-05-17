@@ -10,6 +10,9 @@ executors:
   hashicorp_terraform:
     docker:
       - image: hashicorp/terraform:full
+  cypress_node_10:
+    docker:
+      - image: cypress/base:10
 
 
 commands:
@@ -19,6 +22,7 @@ commands:
       - run:
           name: Make CI_ENV required
           command: 'if [ -z "${CI_ENV}" ]; then echo "CI_ENV is required!" && exit 1; fi'
+
   stage_code:
     description: "Stage code in an s3 bucket"
     parameters:
@@ -47,7 +51,7 @@ commands:
           name: Stage lambda code in s3 bucket
           command: ./bin/stage_lambda_zip "$LAMBDA_DEPLOY_BUCKET" "$CI_ENV" "$BUILD_ID"
 
-  deploy:
+  deploy_infra:
     description: "Deploy all AWS resources and code with Terraform"
     parameters:
       ci_env:
@@ -65,8 +69,8 @@ commands:
       - make_ci_env_required
       - checkout
       - run:
-          name: Install Python and pip
-          command: apk add python py-pip
+          name: Install Python, pip, and jq
+          command: apk add python py-pip jq
       - run:
           name: Install AWS cli
           command: pip install awscli --user
@@ -82,7 +86,7 @@ commands:
           command: terraform init
           working_directory: infrastructure
       - run:
-          name: Switch to or create Workspace
+          name: Switch to or create workspace
           command: terraform workspace select "${CI_ENV}" || terraform workspace new "${CI_ENV}"
           working_directory: infrastructure
       - run:
@@ -99,13 +103,29 @@ commands:
           working_directory: infrastructure
       - run:
           name: Persist the execution URL for the e2e tests
-          command: |
-            echo 'export CYPRESS_BASE_URL="$(./e2e/bin/exec_url ${CI_ENV})"' >> cypress_base_url_env
+          command: echo "export CYPRESS_BASE_URL=\"$(./e2e/bin/exec_url ${CI_ENV})\"" >> cypress_base_url_env
       - persist_to_workspace:
           root: ./
           paths:
             - cypress_base_url_env
 
+  end_to_end_test:
+    description: "Deploy all AWS resources and code with Terraform"
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Setup environment variables
+          command: mv /tmp/workspace/cypress_base_url_env $BASH_ENV
+      - run:
+          name: Install dependencies
+          command: npm ci
+          working_directory: e2e
+      - run:
+          name: Run Cypress tests
+          command: npm test
+          working_directory: e2e
 
 jobs:
   unit_test_and_build_lambda:
@@ -137,8 +157,14 @@ jobs:
   deploy_dev:
     executor: hashicorp_terraform
     steps:
-      - deploy:
+      - deploy_infra:
           ci_env: dev
+
+  end_to_end_test_dev:
+    executor: cypress_node_10
+    steps:
+      - end_to_end_test
+
 
 workflows:
   version: 2
@@ -157,6 +183,12 @@ workflows:
       - deploy_dev:
           requires:
             - stage_code_dev
+          filters:
+            branches:
+              only: add-circle-ci
+      - end_to_end_test_dev:
+          requires:
+            - deploy_dev
           filters:
             branches:
               only: add-circle-ci

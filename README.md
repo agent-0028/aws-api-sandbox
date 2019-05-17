@@ -8,6 +8,7 @@ AWS API Gateway and Lambda with Terraform
 * The AWS command line client
 * Your AWS credentials set up so you can access your resources
 * The Terraform client
+* A command line JSON parser called `jq` (used in e2e/bin/exec_url)
 * Node 8.10.0 (for running tests locally)
 
 ### Setup
@@ -15,7 +16,7 @@ AWS API Gateway and Lambda with Terraform
 #### Install and configure the AWS client
 
 ```
-brew install awscli terraform
+brew install awscli terraform jq
 ```
 
 Configure the client using [these instructions](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html).
@@ -62,5 +63,6 @@ These environment variables need to be set up for your CircleCI project.
 ```
 AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY
+AWS_DEFAULT_REGION
 LAMBDA_DEPLOY_BUCKET
 ```
