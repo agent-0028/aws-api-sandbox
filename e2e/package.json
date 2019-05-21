@@ -5,7 +5,6 @@
   "main": "index.js",
   "scripts": {
     "test": "cypress run",
-    "test:local": "CYPRESS_BASE_URL=$(./bin/exec_url ${CI_ENV}) npm test",
     "cypress:open": "cypress open"
   },
   "repository": {

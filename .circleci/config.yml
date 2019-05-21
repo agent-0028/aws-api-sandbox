@@ -123,9 +123,14 @@ commands:
           command: npm ci
           working_directory: e2e
       - run:
+          name: Display execution url
+          command: echo "${CYPRESS_BASE_URL}"
+          working_directory: e2e
+      - run:
           name: Run Cypress tests
           command: npm test
           working_directory: e2e
+
 
 jobs:
   unit_test_and_build_lambda:
@@ -147,6 +152,23 @@ jobs:
           root: ./
           paths:
             - build
+
+  stage_code_feature_tag:
+    executor: circleci_python
+    steps:
+      - stage_code:
+          ci_env: "${CIRCLE_TAG}"
+
+  deploy_feature_tag:
+    executor: hashicorp_terraform
+    steps:
+      - deploy_infra:
+          ci_env: "${CIRCLE_TAG}"
+
+  end_to_end_test_feature_tag:
+    executor: cypress_node_10
+    steps:
+      - end_to_end_test
 
   stage_code_dev:
     executor: circleci_python
@@ -174,6 +196,30 @@ workflows:
           filters:
             tags:
               only: /.*/
+      - stage_code_feature_tag:
+          requires:
+            - unit_test_and_build_lambda
+          filters:
+            tags:
+              only: /^feature-[a-z0-9\-]+$/
+            branches:
+              ignore: /.*/
+      - deploy_feature_tag:
+          requires:
+            - stage_code_feature_tag
+          filters:
+            tags:
+              only: /^feature-[a-z0-9\-]+$/
+            branches:
+              ignore: /.*/
+      - end_to_end_test_feature_tag:
+          requires:
+            - deploy_feature_tag
+          filters:
+            tags:
+              only: /^feature-[a-z0-9\-]+$/
+            branches:
+              ignore: /.*/
       - stage_code_dev:
           requires:
             - unit_test_and_build_lambda

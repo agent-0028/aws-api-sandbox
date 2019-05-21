@@ -15,7 +15,7 @@ API_NAME="API Sandbox - ${CI_ENV}"
 API_ID=$(aws --output json apigateway get-rest-apis | jq --raw-output --arg API_NAME "${API_NAME}" '.items[]  | select(.name == $API_NAME) | .id')
 
 # Use the environment variable or pull from aws configure
-[ -z "${AWS_DEFAULT_REGION}" ] && REGION="$(aws configure get region)" || REGION="${AWS_DEFAULT_REGION}"
+[ -z "${AWS_DEFAULT_REGION:-}" ] && REGION="$(aws configure get region)" || REGION="${AWS_DEFAULT_REGION}"
 
 EXEC_URL="https://${API_ID}.execute-api.${REGION}.amazonaws.com/sandbox-${CI_ENV}"
 
