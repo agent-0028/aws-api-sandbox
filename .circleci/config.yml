@@ -225,16 +225,16 @@ workflows:
             - unit_test_and_build_lambda
           filters:
             branches:
-              only: add-circle-ci
+              only: develop
       - deploy_dev:
           requires:
             - stage_code_dev
           filters:
             branches:
-              only: add-circle-ci
+              only: develop
       - end_to_end_test_dev:
           requires:
             - deploy_dev
           filters:
             branches:
-              only: add-circle-ci
+              only: develop
