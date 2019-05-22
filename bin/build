@@ -18,4 +18,4 @@ cp "${SOURCE_DIR}/"*.js "${BUILD_DIR}/"
 cp "${LAMBDA_DIR}/package.json" "${BUILD_DIR}/"
 cp "${LAMBDA_DIR}/package-lock.json" "${BUILD_DIR}/"
 
-cd "${BUILD_DIR}" && npm ci --only=production
+cd "${BUILD_DIR}" && npm install

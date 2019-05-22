@@ -1,0 +1,240 @@
+version: 2.1
+
+executors:
+  circleci_node_8:
+    docker:
+      - image: circleci/node:8.10
+  circleci_python:
+    docker:
+      - image: circleci/python:2.7-stretch
+  hashicorp_terraform:
+    docker:
+      - image: hashicorp/terraform:full
+  cypress_node_10:
+    docker:
+      - image: cypress/base:10
+
+
+commands:
+  make_ci_env_required:
+    description: "Ensure that the environment var CI_ENV is not empty"
+    steps:
+      - run:
+          name: Make CI_ENV required
+          command: 'if [ -z "${CI_ENV}" ]; then echo "CI_ENV is required!" && exit 1; fi'
+
+  stage_code:
+    description: "Stage code in an s3 bucket"
+    parameters:
+      ci_env:
+        type: string
+    steps:
+      - run:
+          name: Setup environment variables
+          command: |
+            echo 'export BUILD_ID="${CIRCLE_BUILD_NUM}-${CIRCLE_SHA1:0:7}"' >> $BASH_ENV
+            echo 'export CI_ENV="<< parameters.ci_env >>"' >> $BASH_ENV
+      - make_ci_env_required
+      - attach_workspace:
+          at: /tmp/workspace
+      - checkout
+      - run:
+          name: Install awscli
+          command: sudo pip install awscli
+      - run:
+          name: Check awscli version
+          command: aws --version
+      - run:
+          name: Move build folder back where it should be
+          command: mv /tmp/workspace/build ./
+      - run:
+          name: Stage lambda code in s3 bucket
+          command: ./bin/stage_lambda_zip "$LAMBDA_DEPLOY_BUCKET" "$CI_ENV" "$BUILD_ID"
+
+  deploy_infra:
+    description: "Deploy all AWS resources and code with Terraform"
+    parameters:
+      ci_env:
+        type: string
+    steps:
+      - run:
+          name: Setup Environment Variables
+          command: |
+            echo 'export BUILD_ID="${CIRCLE_PREVIOUS_BUILD_NUM}-${CIRCLE_SHA1:0:7}"' >> $BASH_ENV
+            echo 'export CI_ENV="<< parameters.ci_env >>"' >> $BASH_ENV
+            echo 'export TF_VAR_build_id="${BUILD_ID}"' >> $BASH_ENV
+            echo 'export TF_VAR_lambda_deploy_bucket="${LAMBDA_DEPLOY_BUCKET}"' >> $BASH_ENV
+            echo '# This should make awscli work even with a --user install' >> $BASH_ENV
+            echo 'export PATH=~/.local/bin:$PATH' >> $BASH_ENV
+      - make_ci_env_required
+      - checkout
+      - run:
+          name: Install Python, pip, and jq
+          command: apk add python py-pip jq
+      - run:
+          name: Install AWS cli
+          command: pip install awscli --user
+      - run:
+          name: Check awscli version
+          command: aws --version
+      - run:
+          name: Lint Terraform
+          command: terraform fmt -check=true
+          working_directory: infrastructure
+      - run:
+          name: Init Terraform
+          command: terraform init
+          working_directory: infrastructure
+      - run:
+          name: Switch to or create workspace
+          command: terraform workspace select "${CI_ENV}" || terraform workspace new "${CI_ENV}"
+          working_directory: infrastructure
+      - run:
+          name: Validate Terraform config
+          command: terraform validate
+          working_directory: infrastructure
+      - run:
+          name: Save Terraform Plan
+          command: terraform plan --input=false --out=./circleci.tfplan
+          working_directory: infrastructure
+      - run:
+          name: Apply Terraform Plan
+          command: terraform apply --input=false ./circleci.tfplan
+          working_directory: infrastructure
+      - run:
+          name: Persist the execution URL for the e2e tests
+          command: echo "export CYPRESS_BASE_URL=\"$(./e2e/bin/exec_url ${CI_ENV})\"" >> cypress_base_url_env
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - cypress_base_url_env
+
+  end_to_end_test:
+    description: "Deploy all AWS resources and code with Terraform"
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Setup environment variables
+          command: mv /tmp/workspace/cypress_base_url_env $BASH_ENV
+      - run:
+          name: Install dependencies
+          command: npm ci
+          working_directory: e2e
+      - run:
+          name: Display execution url
+          command: echo "${CYPRESS_BASE_URL}"
+          working_directory: e2e
+      - run:
+          name: Run Cypress tests
+          command: npm test
+          working_directory: e2e
+
+
+jobs:
+  unit_test_and_build_lambda:
+    executor: circleci_node_8
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: npm install
+          working_directory: lambda
+      - run:
+          name: Run unit tests and lint
+          command: npm test
+          working_directory: lambda
+      - run:
+          name: Build code
+          command: bin/build
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - build
+
+  stage_code_feature_tag:
+    executor: circleci_python
+    steps:
+      - stage_code:
+          ci_env: "${CIRCLE_TAG}"
+
+  deploy_feature_tag:
+    executor: hashicorp_terraform
+    steps:
+      - deploy_infra:
+          ci_env: "${CIRCLE_TAG}"
+
+  end_to_end_test_feature_tag:
+    executor: cypress_node_10
+    steps:
+      - end_to_end_test
+
+  stage_code_dev:
+    executor: circleci_python
+    steps:
+      - stage_code:
+          ci_env: dev
+
+  deploy_dev:
+    executor: hashicorp_terraform
+    steps:
+      - deploy_infra:
+          ci_env: dev
+
+  end_to_end_test_dev:
+    executor: cypress_node_10
+    steps:
+      - end_to_end_test
+
+
+workflows:
+  version: 2
+  test_build_deploy:
+    jobs:
+      - unit_test_and_build_lambda:
+          filters:
+            tags:
+              only: /.*/
+      - stage_code_feature_tag:
+          requires:
+            - unit_test_and_build_lambda
+          filters:
+            tags:
+              only: /^feature-[a-z0-9\-]+$/
+            branches:
+              ignore: /.*/
+      - deploy_feature_tag:
+          requires:
+            - stage_code_feature_tag
+          filters:
+            tags:
+              only: /^feature-[a-z0-9\-]+$/
+            branches:
+              ignore: /.*/
+      - end_to_end_test_feature_tag:
+          requires:
+            - deploy_feature_tag
+          filters:
+            tags:
+              only: /^feature-[a-z0-9\-]+$/
+            branches:
+              ignore: /.*/
+      - stage_code_dev:
+          requires:
+            - unit_test_and_build_lambda
+          filters:
+            branches:
+              only: add-circle-ci
+      - deploy_dev:
+          requires:
+            - stage_code_dev
+          filters:
+            branches:
+              only: add-circle-ci
+      - end_to_end_test_dev:
+          requires:
+            - deploy_dev
+          filters:
+            branches:
+              only: add-circle-ci

@@ -2,22 +2,21 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-ENVIRONMENT=${1:-}
+CI_ENV=${1:-}
 
-if [ -z "${ENVIRONMENT}" ] ; then
-  echo "This script is for quick deployments to an existing Lambda."
-  echo "It is not meant to be used by Terraform or CI."
+if [ -z "${CI_ENV}" ] ; then
   echo "Usage:"
   echo "exec_url <environment>"
   exit 1
 fi
 
-API_NAME="API Sandbox - ${ENVIRONMENT}"
+API_NAME="API Sandbox - ${CI_ENV}"
 
 API_ID=$(aws --output json apigateway get-rest-apis | jq --raw-output --arg API_NAME "${API_NAME}" '.items[]  | select(.name == $API_NAME) | .id')
 
-REGION="$(aws configure get region)" || "${AWS_DEFAULT_REGION}"
+# Use the environment variable or pull from aws configure
+[ -z "${AWS_DEFAULT_REGION:-}" ] && REGION="$(aws configure get region)" || REGION="${AWS_DEFAULT_REGION}"
 
-EXEC_URL="https://${API_ID}.execute-api.${REGION}.amazonaws.com/sandbox-${ENVIRONMENT}"
+EXEC_URL="https://${API_ID}.execute-api.${REGION}.amazonaws.com/sandbox-${CI_ENV}"
 
 echo "${EXEC_URL}"

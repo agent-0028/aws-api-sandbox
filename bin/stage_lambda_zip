@@ -3,10 +3,10 @@ set -euo pipefail
 IFS=$'\n\t'
 
 DEPLOY_BUCKET=${1:-}
-ENVIRONMENT=${2:-}
+CI_ENV=${2:-}
 BUILD_ID=${3:-}
 
-if [ -z "${DEPLOY_BUCKET}" ] || [ -z "${ENVIRONMENT}" ] || [ -z "${BUILD_ID}" ]; then
+if [ -z "${DEPLOY_BUCKET}" ] || [ -z "${CI_ENV}" ] || [ -z "${BUILD_ID}" ]; then
   echo "Usage:"
   echo "stage_lambda_zip <deploy_bucket> <environment> <build_id>"
   exit 1
@@ -24,4 +24,4 @@ mkdir -p "${TMP_DIR}"
 
 cd "${BUILD_DIR}" && zip --recurse-paths "${TMP_DIR}/sandbox.zip" .
 
-aws s3 cp "${TMP_DIR}/sandbox.zip" "s3://${DEPLOY_BUCKET}/aws-api-sandbox/${ENVIRONMENT}/sandbox-${BUILD_ID}.zip"
+aws s3 cp "${TMP_DIR}/sandbox.zip" "s3://${DEPLOY_BUCKET}/aws-api-sandbox/${CI_ENV}/sandbox-${BUILD_ID}.zip"
