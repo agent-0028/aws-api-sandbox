@@ -18,7 +18,7 @@ resource "aws_lambda_function" "sandbox" {
   # this lambda assumes this role
   role = "${aws_iam_role.sandbox.arn}"
 
-  tags {
+  tags = {
     Environment = "${terraform.workspace}"
     CostCenter  = "sandbox"
   }
@@ -44,9 +44,9 @@ resource "aws_iam_role" "sandbox" {
 }
 EOF
 
-  tags {
+  tags = {
     Environment = "${terraform.workspace}"
-    CostCenter  = "sandbox"
+    CostCenter = "sandbox"
   }
 }
 
@@ -119,7 +119,7 @@ resource "aws_lambda_permission" "apigw" {
 resource "aws_api_gateway_resource" "proxy" {
   rest_api_id = "${aws_api_gateway_rest_api.sandbox.id}"
   parent_id   = "${aws_api_gateway_rest_api.sandbox.root_resource_id}"
-  path_part   = "{proxy+}"                                             # this accepts any route
+  path_part   = "{proxy+}" # this accepts any route
 }
 
 # the gateway will accept all HTTP methods

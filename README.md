@@ -21,6 +21,22 @@ brew install awscli terraform jq
 
 Configure the AWS client using [these instructions](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html).
 
+#### Create two AWS S3 buckets
+
+You'll need one bucket to store the Terraform state in (see below), and a second for "staging" the code for the lambda before running Teffaform to create the AWS resources.
+
+The second one is referred to in `variables.tf` as `lambda_deploy_bucket`, you'll need to put that bucket name in your `.env` and specify it in your CircleCI project (see very far below).
+
+Everything else about this project is true "infrastructure as code" and you can create and destroy the whole works using Terraform. These two buckets are the only pre-requisites needed to be created "manually". You can use the `aws` command line client if you like, or the AWS web console.
+
+#### One Code Change
+
+If you have forked this repo and want to run it against your own AWS account, **you will have to make one commit after forking**.
+
+This project uses an S3 bucket to store Terraform state (see above), and you cannot use an environment variable to specify that bucket.
+
+In the file `infrastructure/main.tf` change the value of `bucket` to the name of the bucket want to use for Terraform state. It is right below the really loud comment `# IF YOU ARE NOT ME, CHANGE THIS TO A BUCKET YOU CAN ACCESS`.
+
 ### Local Tests
 
 ```

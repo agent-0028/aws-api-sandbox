@@ -78,6 +78,9 @@ commands:
           name: Check awscli version
           command: aws --version
       - run:
+          name: Check terraform version
+          command: terraform version
+      - run:
           name: Lint Terraform
           command: terraform fmt -check=true
           working_directory: infrastructure
