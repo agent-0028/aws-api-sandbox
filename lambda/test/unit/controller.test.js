@@ -16,7 +16,7 @@ describe('controller', function () {
       handler = td.func('handler')
       td.when(handler(params)).thenResolve({ statusCode: 200, body: 'body' })
       mockHandlers = {
-        'GET': {
+        GET: {
           '/handler/': handler
         }
       }
@@ -33,7 +33,8 @@ describe('controller', function () {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Credentials': true
           },
-          body: 'body' })
+          body: 'body'
+        })
       })
     })
 

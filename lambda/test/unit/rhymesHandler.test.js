@@ -12,9 +12,9 @@ describe('message', function () {
     td.when(rhymeIt('moon')).thenReturn(fakeRhymesMoon)
     td.when(rhymeIt('food')).thenReturn(fakeRhymesFood)
 
-    return subject({ words: [ 'moon', 'food' ] }).then((result) => {
+    return subject({ words: ['moon', 'food'] }).then((result) => {
       expect(result.statusCode).toEqual(200)
-      expect(result.body).toEqual(`["moon","soon","boon","good","wood"]`)
+      expect(result.body).toEqual('["moon","soon","boon","good","wood"]')
     })
   })
 
@@ -23,9 +23,9 @@ describe('message', function () {
       td.when(rhymeIt('sdfgwtp')).thenReturn([])
       td.when(rhymeIt('xdfglh')).thenReturn([])
 
-      return subject({ words: [ 'sdfgwtp', 'xdfglh' ] }).then((result) => {
+      return subject({ words: ['sdfgwtp', 'xdfglh'] }).then((result) => {
         expect(result.statusCode).toEqual(200)
-        expect(result.body).toEqual(`[]`)
+        expect(result.body).toEqual('[]')
       })
     })
   })
@@ -34,7 +34,7 @@ describe('message', function () {
     it('resolves with an empty array', function () {
       return subject({ }).then((result) => {
         expect(result.statusCode).toEqual(200)
-        expect(result.body).toEqual(`[]`)
+        expect(result.body).toEqual('[]')
       })
     })
   })
@@ -43,7 +43,7 @@ describe('message', function () {
     it('resolves with an empty array', function () {
       return subject().then((result) => {
         expect(result.statusCode).toEqual(200)
-        expect(result.body).toEqual(`[]`)
+        expect(result.body).toEqual('[]')
       })
     })
   })
