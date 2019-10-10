@@ -46,7 +46,7 @@ EOF
 
   tags = {
     Environment = "${terraform.workspace}"
-    CostCenter = "sandbox"
+    CostCenter  = "sandbox"
   }
 }
 
