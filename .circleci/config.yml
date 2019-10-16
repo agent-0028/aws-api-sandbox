@@ -105,8 +105,11 @@ commands:
           command: terraform apply --input=false ./circleci.tfplan
           working_directory: infrastructure
       - run:
-          name: Persist the execution URL for the e2e tests
-          command: echo "export CYPRESS_BASE_URL=\"$(./e2e/bin/exec_url ${CI_ENV})\"" >> cypress_base_url_env
+          name: Display the execution URL and persist for e2e tests
+          command: |
+            CYPRESS_BASE_URL="$(./e2e/bin/exec_url ${CI_ENV})"
+            echo "exec URL w/ params: ${CYPRESS_BASE_URL}/rhymes/?words=orange"
+            echo "export CYPRESS_BASE_URL=\"${CYPRESS_BASE_URL}\"" >> cypress_base_url_env
       - persist_to_workspace:
           root: ./
           paths:
