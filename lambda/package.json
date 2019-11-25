@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/agent-0028/aws-api-sandbox#readme",
   "engines": {
-    "node": "8.10.0"
+    "node": "10.16.3"
   },
   "devDependencies": {
     "jasmine": "^3.4.0",

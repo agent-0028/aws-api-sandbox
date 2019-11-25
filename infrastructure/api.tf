@@ -2,7 +2,7 @@
 resource "aws_lambda_function" "sandbox" {
   function_name = "api-sandbox-${terraform.workspace}"
 
-  s3_bucket = "${var.lambda_deploy_bucket}"
+  s3_bucket = var.lambda_deploy_bucket
   s3_key    = "aws-api-sandbox/${terraform.workspace}/sandbox-${var.build_id}.zip"
 
   # this is seconds, default is only 3
@@ -13,10 +13,10 @@ resource "aws_lambda_function" "sandbox" {
 
   # the file `main.js` will export a method `handler`
   handler = "main.handler"
-  runtime = "nodejs8.10"
+  runtime = "nodejs10.x"
 
   # this lambda assumes this role
-  role = "${aws_iam_role.sandbox.arn}"
+  role = aws_iam_role.sandbox.arn
 
   tags = {
     Environment = "${terraform.workspace}"
@@ -53,7 +53,7 @@ EOF
 # there is a policy attached to our role that allow log creation
 resource "aws_iam_role_policy" "sandbox" {
   name = "lambda_exec_policy-${terraform.workspace}"
-  role = "${aws_iam_role.sandbox.id}"
+  role = aws_iam_role.sandbox.id
 
   policy = <<EOF
 {
@@ -84,23 +84,23 @@ resource "aws_api_gateway_rest_api" "sandbox" {
 
 # requests will be routed to our lambda
 resource "aws_api_gateway_integration" "lambda" {
-  rest_api_id = "${aws_api_gateway_rest_api.sandbox.id}"
-  resource_id = "${aws_api_gateway_method.proxy.resource_id}"
-  http_method = "${aws_api_gateway_method.proxy.http_method}"
+  rest_api_id = aws_api_gateway_rest_api.sandbox.id
+  resource_id = aws_api_gateway_method.proxy.resource_id
+  http_method = aws_api_gateway_method.proxy.http_method
 
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
-  uri                     = "${aws_lambda_function.sandbox.invoke_arn}"
+  uri                     = aws_lambda_function.sandbox.invoke_arn
 }
 
 # the gateway is deployed once available
 resource "aws_api_gateway_deployment" "sandbox" {
   depends_on = [
-    "aws_api_gateway_integration.lambda",
-    "aws_api_gateway_integration.lambda_root",
+    aws_api_gateway_integration.lambda,
+    aws_api_gateway_integration.lambda_root,
   ]
 
-  rest_api_id = "${aws_api_gateway_rest_api.sandbox.id}"
+  rest_api_id = aws_api_gateway_rest_api.sandbox.id
   stage_name  = "sandbox-${terraform.workspace}"
 }
 
@@ -108,7 +108,7 @@ resource "aws_api_gateway_deployment" "sandbox" {
 resource "aws_lambda_permission" "apigw" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.sandbox.arn}"
+  function_name = aws_lambda_function.sandbox.arn
   principal     = "apigateway.amazonaws.com"
 
   # access is granted from any method on any resource within the API Gateway
@@ -117,42 +117,42 @@ resource "aws_lambda_permission" "apigw" {
 
 # the gateway will accept all paths
 resource "aws_api_gateway_resource" "proxy" {
-  rest_api_id = "${aws_api_gateway_rest_api.sandbox.id}"
-  parent_id   = "${aws_api_gateway_rest_api.sandbox.root_resource_id}"
+  rest_api_id = aws_api_gateway_rest_api.sandbox.id
+  parent_id   = aws_api_gateway_rest_api.sandbox.root_resource_id
   path_part   = "{proxy+}" # this accepts any route
 }
 
 # the gateway will accept all HTTP methods
 resource "aws_api_gateway_method" "proxy" {
-  rest_api_id   = "${aws_api_gateway_rest_api.sandbox.id}"
-  resource_id   = "${aws_api_gateway_resource.proxy.id}"
+  rest_api_id   = aws_api_gateway_rest_api.sandbox.id
+  resource_id   = aws_api_gateway_resource.proxy.id
   http_method   = "ANY"
   authorization = "NONE"
 }
 
 # the gateway will match on an empty path (workaround for proxy+)
 resource "aws_api_gateway_method" "proxy_root" {
-  rest_api_id   = "${aws_api_gateway_rest_api.sandbox.id}"
-  resource_id   = "${aws_api_gateway_rest_api.sandbox.root_resource_id}"
+  rest_api_id   = aws_api_gateway_rest_api.sandbox.id
+  resource_id   = aws_api_gateway_rest_api.sandbox.root_resource_id
   http_method   = "ANY"
   authorization = "NONE"
 }
 
 # the gateway will match on an empty path (workaround for proxy+)
 resource "aws_api_gateway_integration" "lambda_root" {
-  rest_api_id = "${aws_api_gateway_rest_api.sandbox.id}"
-  resource_id = "${aws_api_gateway_method.proxy_root.resource_id}"
-  http_method = "${aws_api_gateway_method.proxy_root.http_method}"
+  rest_api_id = aws_api_gateway_rest_api.sandbox.id
+  resource_id = aws_api_gateway_method.proxy_root.resource_id
+  http_method = aws_api_gateway_method.proxy_root.http_method
 
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
-  uri                     = "${aws_lambda_function.sandbox.invoke_arn}"
+  uri                     = aws_lambda_function.sandbox.invoke_arn
 }
 
 # there shall be logs
 resource "aws_api_gateway_method_settings" "sandbox" {
-  rest_api_id = "${aws_api_gateway_rest_api.sandbox.id}"
-  stage_name  = "${aws_api_gateway_deployment.sandbox.stage_name}"
+  rest_api_id = aws_api_gateway_rest_api.sandbox.id
+  stage_name  = aws_api_gateway_deployment.sandbox.stage_name
   method_path = "*/*"
 
   settings {
@@ -160,11 +160,11 @@ resource "aws_api_gateway_method_settings" "sandbox" {
     logging_level   = "INFO"
   }
 
-  depends_on = ["aws_api_gateway_account.sandbox"]
+  depends_on = [aws_api_gateway_account.sandbox]
 }
 
 resource "aws_api_gateway_account" "sandbox" {
-  cloudwatch_role_arn = "${aws_iam_role.cloudwatch.arn}"
+  cloudwatch_role_arn = aws_iam_role.cloudwatch.arn
 }
 
 resource "aws_iam_role" "cloudwatch" {
@@ -189,7 +189,7 @@ EOF
 
 resource "aws_iam_role_policy" "cloudwatch" {
   name = "cloudwatch-${terraform.workspace}"
-  role = "${aws_iam_role.cloudwatch.id}"
+  role = aws_iam_role.cloudwatch.id
 
   policy = <<EOF
 {
@@ -215,5 +215,5 @@ EOF
 
 # the public url will be printed
 output "base-url" {
-  value = "${aws_api_gateway_deployment.sandbox.invoke_url}"
+  value = aws_api_gateway_deployment.sandbox.invoke_url
 }
