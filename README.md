@@ -9,7 +9,7 @@ AWS API Gateway and Lambda with Terraform
 * Your AWS credentials set up so you can access your resources
 * The Terraform client
 * A command line JSON parser called `jq` (used in `e2e/bin/exec_url`)
-* Node 8.10.0 (for running tests locally)
+* Node 10.16.3 (for running tests locally)
 
 ### Setup
 

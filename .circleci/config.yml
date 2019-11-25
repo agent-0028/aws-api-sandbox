@@ -1,9 +1,9 @@
 version: 2.1
 
 executors:
-  circleci_node_8:
+  circleci_node_10:
     docker:
-      - image: circleci/node:8.10
+      - image: circleci/node:10.16.3
   circleci_python:
     docker:
       - image: circleci/python:2.7-stretch
@@ -12,7 +12,7 @@ executors:
       - image: hashicorp/terraform:full
   cypress_node_10:
     docker:
-      - image: cypress/base:10
+      - image: cypress/base:10.16.0
 
 
 commands:
@@ -140,7 +140,7 @@ commands:
 
 jobs:
   unit_test_and_build_lambda:
-    executor: circleci_node_8
+    executor: circleci_node_10
     steps:
       - checkout
       - run:

@@ -13,7 +13,7 @@ resource "aws_lambda_function" "sandbox" {
 
   # the file `main.js` will export a method `handler`
   handler = "main.handler"
-  runtime = "nodejs8.10"
+  runtime = "nodejs10.16.3"
 
   # this lambda assumes this role
   role = "${aws_iam_role.sandbox.arn}"
