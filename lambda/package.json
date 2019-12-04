@@ -29,7 +29,7 @@
     "testdouble": "^3.12.4"
   },
   "dependencies": {
-    "rhymes": "agent-0028/rhymes#master"
+    "rhymes": "^1.0.3"
   },
   "standard": {
     "globals": [
