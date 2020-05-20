@@ -1,9 +1,11 @@
 const rhymesHandler = require('./rhymesHandler')
+const rootHandler = require('./rootHandler')
 const notFoundHandler = require('./notFoundHandler')
 
 const injectedHandlers = {
   GET: {
-    '/rhymes/': rhymesHandler
+    '/rhymes/': rhymesHandler,
+    '/': rootHandler
   }
 }
 const injectedNotFoundHandler = notFoundHandler
