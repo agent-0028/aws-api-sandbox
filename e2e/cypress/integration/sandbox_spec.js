@@ -1,4 +1,13 @@
 describe('API Sandbox', function() {
+  it('returns an array of instructions', () => {
+    return cy.request({
+      url: '/'
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+      expect(response.body).to.contain('Do that')
+    })
+  })
+
   it('finds a rhyme', () => {
     return cy.request({
       url: '/rhymes/',
