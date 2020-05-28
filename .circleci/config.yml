@@ -17,14 +17,14 @@ executors:
 
 commands:
   make_ci_env_required:
-    description: "Ensure that the environment var CI_ENV is not empty"
+    description: Ensure that the environment var CI_ENV is not empty
     steps:
       - run:
           name: Make CI_ENV required
           command: 'if [ -z "${CI_ENV}" ]; then echo "CI_ENV is required!" && exit 1; fi'
 
   stage_code:
-    description: "Stage code in an s3 bucket"
+    description: Stage code in an s3 bucket
     parameters:
       ci_env:
         type: string
@@ -52,7 +52,7 @@ commands:
           command: ./bin/stage_lambda_zip "$LAMBDA_DEPLOY_BUCKET" "$CI_ENV" "$BUILD_ID"
 
   deploy_infra:
-    description: "Deploy all AWS resources and code with Terraform"
+    description: Deploy all AWS resources and code with Terraform
     parameters:
       ci_env:
         type: string
@@ -116,7 +116,7 @@ commands:
             - cypress_base_url_env
 
   end_to_end_test:
-    description: "Deploy all AWS resources and code with Terraform"
+    description: Run end to end tests
     steps:
       - checkout
       - attach_workspace:
