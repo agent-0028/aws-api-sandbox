@@ -70,7 +70,7 @@ commands:
       - checkout
       - run:
           name: Install Python, pip, and jq
-          command: apk add python py-pip jq
+          command: apk add python3 py-pip jq
       - run:
           name: Install AWS cli
           command: pip install awscli --user
