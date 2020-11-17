@@ -93,6 +93,10 @@ commands:
           command: terraform workspace select "${CI_ENV}" || terraform workspace new "${CI_ENV}"
           working_directory: infrastructure
       - run:
+          name: Init Terraform (again) # this is due to issues with providers specified in state while using workspaces
+          command: terraform init
+          working_directory: infrastructure
+      - run:
           name: Validate Terraform config
           command: terraform validate
           working_directory: infrastructure
