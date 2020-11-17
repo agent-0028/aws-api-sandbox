@@ -19,7 +19,7 @@ resource "aws_lambda_function" "sandbox" {
   role = aws_iam_role.sandbox.arn
 
   tags = {
-    Environment = "${terraform.workspace}"
+    Environment = terraform.workspace
     CostCenter  = "sandbox"
   }
 }
@@ -45,7 +45,7 @@ resource "aws_iam_role" "sandbox" {
 EOF
 
   tags = {
-    Environment = "${terraform.workspace}"
+    Environment = terraform.workspace
     CostCenter  = "sandbox"
   }
 }
