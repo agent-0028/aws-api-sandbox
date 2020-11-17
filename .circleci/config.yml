@@ -98,7 +98,7 @@ commands:
           working_directory: infrastructure
       - run:
           name: Save Terraform Plan
-          command: terraform plan --input=false --out=./circleci.tfplan
+          command: terraform init && terraform plan --input=false --out=./circleci.tfplan
           working_directory: infrastructure
       - run:
           name: Apply Terraform Plan
